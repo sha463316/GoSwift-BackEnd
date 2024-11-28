@@ -18,11 +18,18 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register',[AuthController::class,'register']);
 Route::post('/login',[AuthController::class,'login']);
 
-//Protected Routes needs Token
 
+//Protected Routes needs Token
 Route::group(['middleware' =>['auth:sanctum']] , function (){
 
     //User
     Route::post('/logout',[AuthController::class,'logout']);
+    Route::put('/updateUser',[AuthController::class,'updateUser']);
+    Route::get('/userProfile',[AuthController::class,'user']);
+});
 
+// Admin Routes
+Route::group(['middleware' =>['auth:sanctum', 'admin']], function() {
+
+    Route::post('/makeUserAdmin', [AuthController::class, 'makeUserAdmin']);
 });
