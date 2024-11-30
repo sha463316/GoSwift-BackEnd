@@ -5,6 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
+/* public function store(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:2048', // تحقق من الصورة
+        ]);
+
+        try {
+            // رفع الصورة باستخدام التابع في BaseController
+            $imagePath = $this->uploadImage($request, 'image');
+
+            // يمكنك تخزين مسار الصورة في قاعدة البيانات
+            // Product::create(['image' => $imagePath, ...]);
+
+            return response()->json(['message' => 'تم رفع الصورة بنجاح', 'path' => $imagePath], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }*/
 
 class AuthController extends Controller
 {
@@ -25,7 +46,7 @@ class AuthController extends Controller
             'last_name' => $val['last_name'],
             'email' => $val['email'],
             'phone_number' => $val['phone_number'],
-            'password' => bcrypt($val['password'])
+            'password' => Hash::make($val['password']),
         ]);
 
 
@@ -58,56 +79,80 @@ class AuthController extends Controller
     }
 
     // Logout
-    public function logout(){
+    public function logout()
+    {
         // Delete The Current Token Only
         auth()->user()->currentAccessToken()->delete();
         return response(status: 204);
 
     }
+
+    public function logoutAll()
+    {
+        // Delete The Current Token Only
+        auth()->user()->tokens()->delete();
+        return response(status: 204);
+
+    }
+
+
     // make User admin only admin role can do that
-    public function makeUserAdmin(Request $request){
-        $user = User::where('phone_number' , $request->phone_number) ->first();
-        if (!$user){
+    public function makeUserAdmin(Request $request)
+    {
+        $user = User::where('phone_number', $request->phone_number)->first();
+        if (!$user) {
             return response([
                 'message' => 'user not found.'
-            ],404);
+            ], 404);
         }
         $user->update([
             'role' => 'admin'
         ]);
         return response([
-            'message' => 'User with phone number '.$user->phone_number.' is now admin'
-            ],200);
+            'message' => 'User with phone number ' . $user->phone_number . ' is now admin'
+        ], 200);
     }
+
+
     // Return User Info
-    public function user(){
+    public function get_profile()
+    {
         return response([
             'user' => auth()->user()
-        ],200);
+        ], 200);
     }
+
+
     // Update User Info
-    public function updateUser(Request $request)
+    public function update_profile(Request $request)
     {
-        $validatedData = $request->validate([
-            'first_name' => 'sometimes|string|max:255',
-            'last_name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . auth()->id(),
-            'phone_number' => 'sometimes|digits:10|unique:users,phone_number,' . auth()->id(),
-            'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'image' => 'sometimes|image|mimes:jpeg,png,ico,jpg,gif,svg|max:2048',
             'location' => 'sometimes|string|max:255',
-            'password' => 'sometimes|string|min:8|confirmed|regex:/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/',
+
+            // 'email' => 'sometimes|email|unique:users,email,' . auth()->id(),
+            // 'phone_number' => 'sometimes|digits:10|unique:users,phone_number,' . auth()->id(),
+            // 'password' => 'sometimes|string|min:8|confirmed|regex:/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/',
         ]);
 
-        if ($request->filled('password')) {
-            $validatedData['password'] = bcrypt($request->password);
+        if (auth()->user()->image!=null &&Storage::disk('public')->exists(auth()->user()->image)) {
+            Storage::disk('public')->delete(auth()->user()->image);
         }
-
-        auth()->user()->update($validatedData);
+        auth()->user()->update(
+            [
+                'first_name' => $request->input('first_name'),
+                'last_name' => $request->input('last_name'),
+                'location' => $request->input('location'),
+                'image' => $this->uploadImage($request, 'profiles'),
+            ]
+        );
 
         return response([
             'user' => auth()->user(),
             'message' => 'User Updated Successfully'
-            ],200);
+        ], 200);
     }
 
 
