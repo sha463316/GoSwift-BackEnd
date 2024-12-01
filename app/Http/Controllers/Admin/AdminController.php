@@ -27,6 +27,11 @@ class AdminController extends Controller
                 'message' => 'user not found.'
             ], 404);
         }
+        if ($user['role'] == 'admin') {
+            return response()->json([
+                'message' => 'user is already admin.'
+            ]);
+        }
         $user->update([
             'role' => 'admin'
         ]);
@@ -115,13 +120,9 @@ class AdminController extends Controller
     }
 
 
-    function edit_products(Request $request, $store_id, $product_id)
+    function edit_products(Request $request,  $product_id)
     {
-        $store = Store::where('id', $store_id)->first();
-        if (!$store) {
-            return response()->json(['message' => 'store not found'], 404);
-        }
-        $product = $store->products()->where('id', $product_id)->first();
+        $product = Product::where('id', $product_id)->first();
         if (!$product) {
             return response()->json(['message' => 'product not found'], 404);
         }
@@ -140,19 +141,15 @@ class AdminController extends Controller
             'description' => $request->input('description'),
             'price' => $request->input('price'),
             'quantity' => $request->input('quantity'),
-            'store_id' => $store_id,
             'image' => $this->uploadImage($request, 'products')
         ]);
         return response()->json($product, 200, ['OK']);
     }
 
-    function delete_product($store_id, $product_id)
+    function delete_product($product_id)
     {
-        $store = Store::where('id', $store_id)->first();
-        if (!$store) {
-            return response()->json(['message' => 'store not found'], 404);
-        }
-        $product = $store->products()->where('id', $product_id)->first();
+
+        $product = Product::where('id', $product_id)->first();
         if (!$product) {
             return response()->json(['message' => 'product not found'], 404);
         }
