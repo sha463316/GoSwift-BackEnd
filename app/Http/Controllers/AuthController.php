@@ -33,7 +33,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
 
-        $val = $request->validate([
+        $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -42,11 +42,11 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'first_name' => $val['first_name'],
-            'last_name' => $val['last_name'],
-            'email' => $val['email'],
-            'phone_number' => $val['phone_number'],
-            'password' => Hash::make($val['password']),
+           'first_name'=>$request->input('first_name'),
+            'last_name'=>$request->input('last_name'),
+            'email'=>$request->input('email'),
+            'phone_number'=>$request->input('phone_number'),
+            'password'=>Hash::make($request->input('password')),
         ]);
 
 
@@ -97,21 +97,7 @@ class AuthController extends Controller
 
 
     // make User admin only admin role can do that
-    public function makeUserAdmin(Request $request)
-    {
-        $user = User::where('phone_number', $request->phone_number)->first();
-        if (!$user) {
-            return response([
-                'message' => 'user not found.'
-            ], 404);
-        }
-        $user->update([
-            'role' => 'admin'
-        ]);
-        return response([
-            'message' => 'User with phone number ' . $user->phone_number . ' is now admin'
-        ], 200);
-    }
+
 
 
     // Return User Info

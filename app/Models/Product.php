@@ -16,6 +16,7 @@ class Product extends Model
         'description',
         'discount',
         'amount',
+        'quantity',
         'store_id',
     ];
 

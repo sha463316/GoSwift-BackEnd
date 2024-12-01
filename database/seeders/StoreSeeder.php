@@ -20,7 +20,7 @@ class StoreSeeder extends Seeder
                 'name' => 'Store ' . $i,
                 'address' => 'Address ' . $i,
                 'description' => 'Description ' . $i,
-                'logo' => 'Logo ' . $i,
+                'image' => 'image ' . $i,
 
             ]);
 

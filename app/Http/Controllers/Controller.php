@@ -15,7 +15,6 @@ class Controller extends BaseController
     public function uploadImage(Request $request, $sub_directory)
     {
 
-
         if ($request->hasFile('image')) {
             return  $request->file('image')->store("images/$sub_directory", 'public');
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
@@ -45,6 +46,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 // Admin Routes
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
+    Route::post('/make-admin', [AdminController::class, 'make_user_admin']);
+    Route::post('/create/store', [AdminController::class, 'create_store']);
+    Route::post('/update/store/{id}', [AdminController::class, 'edit_store']);
+    Route::delete('/delete/store/{id}', [AdminController::class, 'delete_store']);
 
-    Route::post('/makeUserAdmin', [AuthController::class, 'makeUserAdmin']);
+
+    Route::post('store/{id}/create-product/', [AdminController::class, 'create_product']);
+    Route::post('store/{store_id}/update-product/{product_id}', [AdminController::class, 'edit_products']);
+    Route::delete('store/{store_id}/delete-product/{product_id}', [AdminController::class, 'delete_product']);
+
 });
