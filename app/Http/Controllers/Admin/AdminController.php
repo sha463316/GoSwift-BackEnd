@@ -13,7 +13,7 @@ class AdminController extends Controller
 {
     function __construct()
     {
-        $this->middleware(['auth:sanctum', 'admin']);
+        //$this->middleware(['auth:sanctum', 'admin']);
     }
 
 
