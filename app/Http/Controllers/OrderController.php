@@ -69,9 +69,6 @@ class OrderController extends Controller
             return response()->json(['message' => 'Permission denied.'], 403);
         }
 
-        if (auth()->user()->id != $order->user_id) {
-            return response()->json(['message' => 'Permission denied.'], 403);
-        }
         $request->validate([
             'quantity' => 'sometimes|integer|min:1',
             'payment_method' => ['sometimes', 'string', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Bank'])],
