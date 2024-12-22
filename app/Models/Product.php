@@ -9,7 +9,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable=[
+    protected $fillable = [
         'name',
         'image',
         'price',
@@ -24,5 +24,15 @@ class Product extends Model
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+
+    function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }
