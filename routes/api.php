@@ -57,9 +57,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('cart', [CartController::class, 'showCart']);
 
 
-    Route::get('like/product/{id}', [LikeController::class, 'likeOrDislike']);
-    Route::get('liked', [LikeController::class, 'getLikedProducts']);
-    Route::get('liked/{id}', [LikeController::class, 'getLikedProduct']);
+    Route::get('like-dislike/{id}', [LikeController::class, 'likeOrDislike']);
+    Route::get('liked-products', [LikeController::class, 'getLikedProducts']);
+    Route::get('liked-products/{id}', [LikeController::class, 'getLikedProduct']);
     Route::get('all-like', [LikeController::class, 'allLikedProducts']);
 
 });

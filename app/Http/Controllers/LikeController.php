@@ -38,6 +38,9 @@ class LikeController extends Controller
         if (!$like) {
             return response()->json(['message' => 'Like not found'], 404);
         }
+        if (auth()->user()->id!=$like->user_id) {
+            return response()->json(['message' => 'Permission denied.'], 403);
+        }
         return response()->json(['data' => $like, 'message' => 'OK'], 201);
     }
 

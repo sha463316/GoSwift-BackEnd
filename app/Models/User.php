@@ -63,4 +63,9 @@ class User extends Authenticatable
         return $this->hasMany(Cart::class);
     }
 
+    function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+
 }

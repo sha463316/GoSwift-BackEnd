@@ -42,11 +42,11 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-           'first_name'=>$request->input('first_name'),
-            'last_name'=>$request->input('last_name'),
-            'email'=>$request->input('email'),
-            'phone_number'=>$request->input('phone_number'),
-            'password'=>Hash::make($request->input('password')),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'phone_number' => $request->input('phone_number'),
+            'password' => Hash::make($request->input('password')),
         ]);
 
 
@@ -91,13 +91,13 @@ class AuthController extends Controller
     {
         // Delete The Current Token Only
         auth()->user()->tokens()->delete();
+        auth()->user()->deviceTokens()->delete();
         return response(status: 204);
 
     }
 
 
     // make User admin only admin role can do that
-
 
 
     // Return User Info
@@ -123,7 +123,7 @@ class AuthController extends Controller
             // 'password' => 'sometimes|string|min:8|confirmed|regex:/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/',
         ]);
 
-        if (auth()->user()->image!=null &&Storage::disk('public')->exists(auth()->user()->image)) {
+        if (auth()->user()->image != null && Storage::disk('public')->exists(auth()->user()->image)) {
             Storage::disk('public')->delete(auth()->user()->image);
         }
         auth()->user()->update(
