@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -49,6 +50,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/orders/{order_id}', [OrderController::class, 'showUserOrder']);
     Route::put('/orders/{order_id}', [OrderController::class, 'updateOrder']);
     Route::delete('/orders/{order_id}', [OrderController::class, 'deleteOrder']);
+
+
+    Route::post('cart', [CartController::class, 'addToCart']);
+    Route::get('cart/create', [CartController::class, 'placeOrder']);
+    Route::get('cart', [CartController::class, 'showCart']);
 
 
     Route::get('like/product/{id}', [LikeController::class, 'likeOrDislike']);

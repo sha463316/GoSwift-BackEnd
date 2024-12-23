@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Rules\StockAvailable;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -17,12 +18,10 @@ class OrderController extends Controller
             'payment_method' => ['required', 'string', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Bank'])],
             'order_location' => 'required|string',
         ]);
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', new StockAvailable($request->input('product_id'))],
+        ]);
         $product = Product::findOrFail($request->product_id);
-
-        if ($product->quantity < $request->quantity) {
-            return response()->json(['message' => 'Not enough stock available'], 400);
-        }
-
         $totalPrice = $product->price * $request->quantity;
 
         $order = Order::create([

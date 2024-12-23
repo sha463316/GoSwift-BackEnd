@@ -23,7 +23,7 @@ class LikeController extends Controller
             return response()->json(['message' => 'Liked'], 201);
         }
         $like->delete();
-        return response()->json(['message' => 'DesLiked'], 201);
+        return response()->json(['message' => 'DesLiked'], 200);
     }
 
     public function getLikedProducts()
