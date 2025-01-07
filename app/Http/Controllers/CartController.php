@@ -12,44 +12,56 @@ use Illuminate\Validation\Rule;
 
 class CartController extends Controller
 {
-    public function addToCart(Request $request)
-    {
+
+
+    public function addToCart(Request $request){
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'product_id' => ['required','exists:products,id'],
+            'quantity' => ['required','integer','min:1'],
+
         ]);
-        $product = Product::find($request->input('product_id'));
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-        $cart = $product->carts()->where('user_id', auth()->id())->first();
-
-        if (!$cart) {
-            $request->validate([
-                'payment_method' => ['required', 'string', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Bank'])],
-                'location' => 'required|string',
-
-            ]);
-            $request->validate([
-                'quantity' => ['required', 'integer', 'min:1', new StockAvailable($request->input('product_id'))],
-            ]);
-
-
-            Cart::create([
-                    'product_id' => $request->input('product_id'),
-                    'quantity' => $request->input('quantity'),
-                    'payment_method' => $request->input('payment_method'),
-                    'location' => $request->input('location'),
-                    'user_id' => auth()->user()->id,
-                ]
-            );
-            return response()->json([
-                'message' => 'Product added to cart successfully',
-            ], 201);
-        } else {
-            $cart->delete();
-            return response(status: 200);
-        }
+        \Gloudemans\Shoppingcart\Cart::add();
     }
+
+
+//    public function addToCart(Request $request)
+//    {
+//        $request->validate([
+//            'product_id' => 'required|exists:products,id',
+//        ]);
+//        $product = Product::find($request->input('product_id'));
+//        if (!$product) {
+//            return response()->json(['message' => 'Product not found'], 404);
+//        }
+//        $cart = $product->carts()->where('user_id', auth()->id())->first();
+//
+//        if (!$cart) {
+//            $request->validate([
+//                'payment_method' => ['required', 'string', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Bank'])],
+//                'location' => 'required|string',
+//
+//            ]);
+//            $request->validate([
+//                'quantity' => ['required', 'integer', 'min:1', new StockAvailable($request->input('product_id'))],
+//            ]);
+//
+//
+//            Cart::create([
+//                    'product_id' => $request->input('product_id'),
+//                    'quantity' => $request->input('quantity'),
+//                    'payment_method' => $request->input('payment_method'),
+//                    'location' => $request->input('location'),
+//                    'user_id' => auth()->user()->id,
+//                ]
+//            );
+//            return response()->json([
+//                'message' => 'Product added to cart successfully',
+//            ], 201);
+//        } else {
+//            $cart->delete();
+//            return response(status: 200);
+//        }
+//    }
 
     public function placeOrder()
     {
@@ -76,6 +88,7 @@ class CartController extends Controller
                     'order_location' => $cart->location,
                 ]);
             } else {
+
                 // For Notification
             }
         }

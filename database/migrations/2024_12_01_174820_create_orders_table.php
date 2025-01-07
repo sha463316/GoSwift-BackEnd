@@ -13,12 +13,10 @@ return new class extends Migration {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(\App\Models\User::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(\App\Models\Product::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(\App\Models\Store::class)->constrained()->cascadeOnDelete();
-            $table->integer('quantity')->default(1);
-            $table->decimal('total_price', 8, 2);
-            $table->enum('payment_method', ['CashSyriatel', 'CashMTN', 'Cash', 'Bank']);
-            $table->string('order_location');
+            $table->double('total_price');
+            $table->enum('payment_method', ['CashSyriatel', 'CashMTN', 'Cash', 'Card']);
+            $table->string('location');
+            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamps();
         });
     }

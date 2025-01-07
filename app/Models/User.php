@@ -58,10 +58,6 @@ class User extends Authenticatable
         return $this->hasMany(Like::class);
     }
 
-    function carts()
-    {
-        return $this->hasMany(Cart::class);
-    }
 
     function deviceTokens()
     {
