@@ -56,7 +56,7 @@ class OrderController extends Controller
         $request->validate([
             'quantity' => ['required', 'integer', 'min:1', new StockAvailable($request->input('orderProduct_id'))],
         ]);
-
+        $product_id = $request->input('orderProduct_id');
 
         $order = Order::find($order_id);
 
@@ -66,24 +66,19 @@ class OrderController extends Controller
         if ($order->user_id !== auth()->id()) {
             return response()->json(['message' => 'You cannot edit this order'], 403);
         }
-        $orderProducts = $order->orderProducts;
+        $product_ids = $order->orderProducts()->pluck('product_id')->toArray();
+        if (!in_array($request->input('orderProduct_id'), $product_ids)) {
+            return response()->json(['message' => 'Order product not found'], 404);
+        }
 
-
-        $request->validate([
-            'orderProduct_id' => new CheckOrder($order_id, $orderProducts, $request->input('orderProduct_id')),
+        $orderProduct = OrderProduct::where('order_id', $order_id)->where('product_id', $product_id)->first();
+        $orderProduct->update([
+            'quantity' => $request->input('quantity'),
+            'price' => $request->input('quantity') * Product::find($product_id)->price
         ]);
 
 
-        foreach ($orderProducts as $orderProduct) {
-            if ($orderProduct->id == $request->input('orderProduct_id')) {
-            }
-            $orderProduct->update([
-                'quantity' => $request->input('quantity'),
-                'price' => $request->input('quantity') * $orderProduct->product->price,
-            ]);
-        }
-
-        $items = $order->orderProducts()->where('order_id', $order_id)->with('product')->get();
+        $items = $order->orderProducts()->with('product')->get();
         $total_price = 0.0;
         foreach ($items as $item) {
             $total_price += $item->quantity * $item->product->price;
@@ -94,7 +89,7 @@ class OrderController extends Controller
             'total_price' => $total_price,
         ]);
 
-        return response()->json(['message' => 'Order updated successfully', 'order' => $order], 201);
+        return response()->json(['message' => 'Order updated successfully', 'order' => $order, 'products' => $items], 201);
 
     }
 
@@ -102,7 +97,8 @@ class OrderController extends Controller
     public
     function showOrders()
     {
-        return response()->json(Order::where('user_id', auth()->id())->with('orderProducts')->get());
+        $orders = Order::where('user_id', auth()->id())->get();;
+        return response()->json(['orders' => $orders], 200);
     }
 
     public
@@ -115,7 +111,7 @@ class OrderController extends Controller
         if ($order->user_id !== auth()->id()) {
             return response()->json(['message' => 'You cannot edit this order'], 403);
         }
-        return response()->json(['order' => $order], 201);
+        return response()->json(['order' => $order, 'products' => $order->orderProducts], 201);
     }
 
     public

@@ -23,7 +23,8 @@ class ProductController extends Controller
 
     public function index()
     {
-        return response()->json(Product::all(), 200, ["OK"]);
+        $products = Product::where('quantity', '>', 0)->get();
+        return response()->json(['products' => $products], 200, ["OK"]);
     }
 
     public function get_product($product_id)
