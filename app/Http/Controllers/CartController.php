@@ -2,25 +2,95 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Product;
 use App\Rules\StockAvailable;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\Events\NotificationFailed;
-use Illuminate\Validation\Rule;
+use Gloudemans\Shoppingcart\Facades\Cart;
+use Illuminate\Support\Facades\Session;
+
 
 class CartController extends Controller
 {
 
 
-    public function addToCart(Request $request){
+    public function addToCart(Request $request)
+    {
+        Session::get('cart', []);
         $request->validate([
-            'product_id' => ['required','exists:products,id'],
-            'quantity' => ['required','integer','min:1'],
-
+            'product_id' => 'required|integer|exists:products,id',
         ]);
-        \Gloudemans\Shoppingcart\Cart::add();
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', new StockAvailable($request->input('product_id'))],
+        ]);
+        $product = Product::find($request->input('product_id'));
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        Cart::add([
+            'id' => $product->id,
+            'quantity' => $request->input('quantity'),
+            'price' => $product->price * $request->input('quantity'),
+            'product' => $product,
+        ]);
+        $cart = ['id' => $product->id,
+            'quantity' => $request->input('quantity'),
+            'price' => $product->price * $request->input('quantity'),
+            'product' => $product,];
+
+        return 'ss';
+
+        return response()->json('success', 'Product added to cart successfully!');
+    }
+
+    public function updateCart(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+        ]);
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', new StockAvailable($request->input('product_id'))],
+        ]);
+        $product = Product::find($request->input('product_id'));
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+
+        $productId = $product->id; // المنتج الذي تريد البحث عنه
+        $isInCart = Cart::content()->contains('id', $productId);
+
+        if ($isInCart) {
+            Cart::update($productId, [
+                'id' => $product->id,
+                'quantity' => $request->input('quantity'),
+                'price' => $product->price * $request->input('quantity'),
+                'product' => $product,
+            ]);
+
+        } else {
+            return response()->json(['message' => 'Product not found in Cart'], 404);
+        }
+    }
+
+    public function removeFromCart(Request $request, $productId)
+    {
+        $product = Product::find($productId);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        $isInCart = Cart::content()->contains('id', $productId);
+
+        if ($isInCart) {
+            Cart::remove($productId);
+        }
+    }
+
+    public function showCart()
+    {
+
+        $cartContent = Cart::content();
+        return response()->json(['Cart' => $cartContent]);
     }
 
 
@@ -63,42 +133,38 @@ class CartController extends Controller
 //        }
 //    }
 
-    public function placeOrder()
-    {
-        $carts = Cart::where('user_id', auth()->id())->get();
+//    public
+//    function placeOrder()
+//    {
+//        $carts = Cart::where('user_id', auth()->id())->get();
+//
+//        if ($carts->isEmpty()) {
+//            return response()->json(['message' => 'Cart is empty'], 404);
+//        }
+//
+//        foreach ($carts as $cart) {
+//            $product = Product::find($cart->product_id);
+//            if ($cart->quantity <= $product->quantity) {
+//                $product->update([
+//                    'quantity' => $product->quantity - $cart->quantity,
+//                ]);
+//                $totalPrice = $product->price * $cart->quantity;
+//                Order::create([
+//                    'user_id' => auth()->id(),
+//                    'store_id' => $product->store_id,
+//                    'product_id' => $product->id,
+//                    'quantity' => $cart->quantity,
+//                    'total_price' => $totalPrice,
+//                    'payment_method' => $cart->payment_method,
+//                    'order_location' => $cart->location,
+//                ]);
+//            } else {
+//
+//                // For Notification
+//            }
+//        }
+//        $carts->each->delete();
+//        return response()->json(['message' => 'All Order placed successfully'], 201);
+//    }
 
-        if ($carts->isEmpty()) {
-            return response()->json(['message' => 'Cart is empty'], 404);
-        }
-
-        foreach ($carts as $cart) {
-            $product = Product::find($cart->product_id);
-            if ($cart->quantity <= $product->quantity) {
-                $product->update([
-                    'quantity' => $product->quantity - $cart->quantity,
-                ]);
-                $totalPrice = $product->price * $cart->quantity;
-                Order::create([
-                    'user_id' => auth()->id(),
-                    'store_id' => $product->store_id,
-                    'product_id' => $product->id,
-                    'quantity' => $cart->quantity,
-                    'total_price' => $totalPrice,
-                    'payment_method' => $cart->payment_method,
-                    'order_location' => $cart->location,
-                ]);
-            } else {
-
-                // For Notification
-            }
-        }
-        $carts->each->delete();
-        return response()->json(['message' => 'All Order placed successfully'], 201);
-    }
-
-    public function showCart()
-    {
-        $carts=Cart::where('user_id', auth()->id())->with('product')->get();
-        return response()->json(['carts' => $carts], 200);
-    }
 }

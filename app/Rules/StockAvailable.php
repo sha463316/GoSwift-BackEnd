@@ -15,7 +15,7 @@ class StockAvailable implements ValidationRule
      *
      * @param int $productId
      */
-    public function __construct(int $productId)
+    public function __construct( $productId)
     {
         $this->productId = $productId; // استلام معرّف المنتج فقط
     }
@@ -30,6 +30,9 @@ class StockAvailable implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         // جلب المنتج من قاعدة البيانات باستخدام معرّف المنتج
+        if (!$this->productId) {
+        $fail('Product id is required.');
+    }
         $product = Product::find($this->productId);
 
         if (!$product) {
