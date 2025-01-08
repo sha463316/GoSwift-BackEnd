@@ -15,7 +15,7 @@ class OrderController extends Controller
     public function placeOrder(Request $request)
     {
         $request->validate([
-            'payment_method' => ['required', Rule::in(['CashSyriatel', 'CashMTN', 'cash', 'card'])],
+            'payment_method' => ['required', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Card'])],
             'location' => 'required|string|max:255',
             'product_id' => 'required|numeric|exists:products,id',
         ]);
@@ -48,7 +48,7 @@ class OrderController extends Controller
     public function updateOrder(Request $request, $order_id)
     {
         $request->validate([
-            'payment_method' => ['required', Rule::in(['CashSyriatel', 'CashMTN', 'cash', 'card'])],
+            'payment_method' => ['required', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Card'])],
             'location' => 'required|string|max:255',
             'orderProduct_id' => 'required|numeric',
         ]);
@@ -111,7 +111,7 @@ class OrderController extends Controller
         if ($order->user_id !== auth()->id()) {
             return response()->json(['message' => 'You cannot edit this order'], 403);
         }
-        return response()->json(['order' => $order, 'products' => $order->orderProducts], 201);
+        return response()->json(['order' => $order], 201);
     }
 
     public

@@ -26,7 +26,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 
 //Protected Routes needs Token
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum','api_session']], function () {
 
     //User
     Route::post('/logout', [AuthController::class, 'logout']);

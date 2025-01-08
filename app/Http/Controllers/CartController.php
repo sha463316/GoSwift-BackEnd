@@ -16,7 +16,6 @@ class CartController extends Controller
 
     public function addToCart(Request $request)
     {
-        Session::get('cart', []);
         $request->validate([
             'product_id' => 'required|integer|exists:products,id',
         ]);
@@ -27,20 +26,26 @@ class CartController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        Cart::add([
+        if (!session()->isStarted()) {
+            session()->start();
+        }
+        $cart = session()->get('cart');
+        $cart[$product->id] = ([
             'id' => $product->id,
             'quantity' => $request->input('quantity'),
             'price' => $product->price * $request->input('quantity'),
             'product' => $product,
         ]);
-        $cart = ['id' => $product->id,
-            'quantity' => $request->input('quantity'),
-            'price' => $product->price * $request->input('quantity'),
-            'product' => $product,];
+        session()->put('cart', $cart);
+        return session()->get('cart');
+    }
 
-        return 'ss';
 
-        return response()->json('success', 'Product added to cart successfully!');
+    public function showCart()
+    {
+
+        $cart = session()->get('cart');
+        return response()->json(['Cart' => $cart]);
     }
 
     public function updateCart(Request $request)
@@ -79,19 +84,10 @@ class CartController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        $isInCart = Cart::content()->contains('id', $productId);
 
-        if ($isInCart) {
-            Cart::remove($productId);
-        }
     }
 
-    public function showCart()
-    {
 
-        $cartContent = Cart::content();
-        return response()->json(['Cart' => $cartContent]);
-    }
 
 
 //    public function addToCart(Request $request)
