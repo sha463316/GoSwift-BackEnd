@@ -16,7 +16,7 @@ class Controller extends BaseController
     {
 
         if ($request->hasFile('image')) {
-            return  $request->file('image')->store("images/$sub_directory", 'public');
+            return  $request->getSchemeAndHttpHost() . '/storage/' .$request->file('image')->store("images/$sub_directory", 'public');
 
         }
 

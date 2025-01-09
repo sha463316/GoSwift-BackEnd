@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderProduct;
 use App\Models\Product;
 use App\Rules\StockAvailable;
 use Illuminate\Http\Request;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 
 
 class CartController extends Controller
@@ -16,6 +18,7 @@ class CartController extends Controller
 
     public function addToCart(Request $request)
     {
+
         $request->validate([
             'product_id' => 'required|integer|exists:products,id',
         ]);
@@ -25,9 +28,6 @@ class CartController extends Controller
         $product = Product::find($request->input('product_id'));
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
-        }
-        if (!session()->isStarted()) {
-            session()->start();
         }
         $cart = session()->get('cart');
         $cart[$product->id] = ([
@@ -60,34 +60,63 @@ class CartController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-
-
-        $productId = $product->id; // المنتج الذي تريد البحث عنه
-        $isInCart = Cart::content()->contains('id', $productId);
-
-        if ($isInCart) {
-            Cart::update($productId, [
-                'id' => $product->id,
-                'quantity' => $request->input('quantity'),
-                'price' => $product->price * $request->input('quantity'),
-                'product' => $product,
-            ]);
-
-        } else {
-            return response()->json(['message' => 'Product not found in Cart'], 404);
-        }
-    }
-
-    public function removeFromCart(Request $request, $productId)
-    {
-        $product = Product::find($productId);
-        if (!$product) {
+        $cart = session()->get('cart');
+        if (!$cart[$product->id]) {
             return response()->json(['message' => 'Product not found'], 404);
         }
+        $cart[$product->id]['quantity'] = $request->input('quantity');
+        return response()->json(['message' => 'Cart updated', 'Cart' => $cart]);
+    }
+
+    public function clearCart(Request $request, $productId)
+    {
+        session()->forget('cart');
+        return response()->json(['message' => 'Cart removed']);
 
     }
 
+    public function deleteFromCart($productId)
+    {
+        $cart = session()->get('cart');
+        unset($cart[$productId]);
+        session()->put('cart', $cart);
+        return response()->json(['message' => 'Product removed', 'Cart' => $cart]);
+    }
 
+    public function placeOrder(Request $request)
+    {
+        $request->validate([
+            'payment_method' => ['required', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Card'])],
+            'location' => 'required|string|max:255',
+        ]);
+        $carts = session()->get('cart');
+        if (!$carts) {
+            return response()->json(['message' => 'Cart is empty'], 404);
+        }
+        $order = Order::create([
+            'user_id' => auth()->id(),
+            'payment_method' => $request->input('payment_method'),
+            'location' => $request->input('location'),
+            'total_price' => 0
+
+        ]);
+
+        $totalPrice = 0;
+        foreach ($carts as $cart) {
+            $totalPrice += $cart['price'];
+            OrderProduct::create([
+                'order_id' => $order->id,
+                'product_id' => $cart['id'],
+                'quantity' => $cart['quantity'],
+                'price' => $cart['price'],
+            ]);
+        }
+        $order->update([
+            'total_price' => $totalPrice
+        ]);
+        session()->forget('cart');
+        return response()->json(['message' => 'Order created','Cart' => $carts]);
+    }
 
 
 //    public function addToCart(Request $request)

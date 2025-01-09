@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->double('total_price');
             $table->enum('payment_method', ['CashSyriatel', 'CashMTN', 'Cash', 'Card']);
             $table->string('location');
-            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
+            $table->enum('status', ['Pending', 'Accepted', 'Declined'])->default('Pending');
             $table->timestamps();
         });
     }

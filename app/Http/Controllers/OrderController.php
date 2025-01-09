@@ -131,6 +131,65 @@ class OrderController extends Controller
     }
 
 
+    public function accepted($order_id)
+    {
+        $order = Order::where('id', $order_id)->with('orderProducts')->first();
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+        if ($order->status != 'Pending') {
+            return response()->json(['message' => 'The order is not pending'], 404);
+        }
+        $items = $order->orderProducts()->get()->toArray();
+
+
+        $accepted = true;
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($item['quantity'] > $product->quantity) {
+                $accepted = false;
+            }
+        }
+        if (!$accepted) {
+            return response()->json(['message' => 'The quantity of one product from order not enough'], 404);
+        }
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            $product->update([
+                'quantity' => $product->quantity - $item['quantity']
+            ]);
+        }
+        $order->update(['status' => 'Accepted']);
+
+        return response()->json(['order' => $order], 201);
+    }
+
+    public
+    function declined(Request $request, $order_id)
+    {
+        $request->validate([
+            'reason' => ['required', 'string'],
+        ]);
+        $order = Order::find($order_id);
+        if ($order->status != 'Pending') {
+            return response()->json(['message' => 'The order is not pending'], 404);
+        }
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+        $order->update(['status' => 'Declined']);
+        return response()->json(['reason' => $request->input('reason')], 201);
+    }
+
+    public
+    function showOrdersPending()
+    {
+        $orders = Order::where('status', 'Pending')->with('orderProducts')->get();
+        return response()->json(['orders' => $orders], 200);
+
+    }
+
+
 //    public function createOrder(Request $request)
 //    {
 //        $request->validate([

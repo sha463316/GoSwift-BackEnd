@@ -26,7 +26,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 
 //Protected Routes needs Token
-Route::group(['middleware' => ['auth:sanctum','api_session']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'api_session']], function () {
 
     //User
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -55,6 +55,9 @@ Route::group(['middleware' => ['auth:sanctum','api_session']], function () {
     Route::post('cart', [CartController::class, 'addToCart']);
     Route::put('cart', [CartController::class, 'updateCart']);
     Route::get('cart', [CartController::class, 'showCart']);
+    Route::delete('cart', [CartController::class, 'clearCart']);
+    Route::delete('cart/{productId}', [CartController::class, 'deleteFromCart']);
+    Route::post('cart/placeOrder', [CartController::class, 'placeOrder']);
 
 
     Route::get('like-dislike/{id}', [LikeController::class, 'likeOrDislike']);
@@ -75,5 +78,10 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::post('/store/{id}/create-product/', [AdminController::class, 'create_product']);
     Route::post('/update-product/{id}', [AdminController::class, 'edit_products']);
     Route::delete('/delete-product/{id}', [AdminController::class, 'delete_product']);
+
+
+    Route::get('accepted/{order_id}', [OrderController::class, 'accepted']);
+    Route::post('declined/{order_id}', [OrderController::class, 'declined']);
+    Route::get('ordersPending', [OrderController::class, 'showOrdersPending']);
 
 });

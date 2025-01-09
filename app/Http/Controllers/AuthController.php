@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
 /* public function store(Request $request)
@@ -48,8 +49,7 @@ class AuthController extends Controller
             'phone_number' => $request->input('phone_number'),
             'password' => Hash::make($request->input('password')),
         ]);
-
-
+        session()->forget('cart');
         return response([
             'user' => $user,
             'token' => $user->createToken($user->phone_number)->plainTextToken
@@ -70,8 +70,9 @@ class AuthController extends Controller
             return response([
                 'message' => 'invalid credentials.'
             ], 403);
-
         }
+        session()->forget('cart');
+
         return response([
             'user' => auth()->user(),
             'token' => auth()->user()->createToken(auth()->user()->phone_number)->plainTextToken
@@ -83,6 +84,7 @@ class AuthController extends Controller
     {
         // Delete The Current Token Only
         auth()->user()->currentAccessToken()->delete();
+        session()->forget('cart');
         return response(status: 204);
 
     }
@@ -92,6 +94,7 @@ class AuthController extends Controller
         // Delete The Current Token Only
         auth()->user()->tokens()->delete();
         auth()->user()->deviceTokens()->delete();
+        Session::forget('cart');
         return response(status: 204);
 
     }
