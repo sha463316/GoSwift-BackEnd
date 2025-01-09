@@ -49,7 +49,7 @@ class AuthController extends Controller
             'phone_number' => $request->input('phone_number'),
             'password' => Hash::make($request->input('password')),
         ]);
-        session()->forget('cart');
+        session()->forget("cart{$user->id}");
         return response([
             'user' => $user,
             'token' => $user->createToken($user->phone_number)->plainTextToken
@@ -71,7 +71,8 @@ class AuthController extends Controller
                 'message' => 'invalid credentials.'
             ], 403);
         }
-        session()->forget('cart');
+        $id = Auth::user()->id;
+        session()->forget("cart{$id}");
 
         return response([
             'user' => auth()->user(),
@@ -83,8 +84,11 @@ class AuthController extends Controller
     public function logout()
     {
         // Delete The Current Token Only
+        $id = auth()->user()->id;
         auth()->user()->currentAccessToken()->delete();
-        session()->forget('cart');
+
+
+        session()->forget("cart{$id}");
         return response(status: 204);
 
     }
@@ -92,9 +96,10 @@ class AuthController extends Controller
     public function logoutAll()
     {
         // Delete The Current Token Only
+        $id = auth()->user()->id;
         auth()->user()->tokens()->delete();
         auth()->user()->deviceTokens()->delete();
-        Session::forget('cart');
+        Session::forget("cart{$id}");
         return response(status: 204);
 
     }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\OrderProduct;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
@@ -90,9 +92,22 @@ class AdminController extends Controller
         if (!$store) {
             return response(['message' => 'store not found.'], 404);
         }
+
+        $deleted = true;
+        $orders = OrderProduct::with('product')->get();
+        foreach ($orders as $order) {
+            if ($order->product->store_id == $store_id) {
+                $deleted = false;
+                break;
+            }
+        }
+        if (!$deleted) {
+            return response(['message' => 'store can not deleted it because one order from it.'], 404);
+        }
         $store->products()->delete();
         $store->delete();
         return response()->json(status: 200);
+
     }
 
     function create_product(Request $request, $store_id)
@@ -120,7 +135,7 @@ class AdminController extends Controller
     }
 
 
-    function edit_products(Request $request,  $product_id)
+    function edit_products(Request $request, $product_id)
     {
         $product = Product::where('id', $product_id)->first();
         if (!$product) {
@@ -152,6 +167,18 @@ class AdminController extends Controller
         $product = Product::where('id', $product_id)->first();
         if (!$product) {
             return response()->json(['message' => 'product not found'], 404);
+        }
+
+        $deleted = true;
+        $orders = OrderProduct::get();
+        foreach ($orders as $order) {
+            if ($order->product_id == $product_id) {
+                $deleted = false;
+                break;
+            }
+        }
+        if (!$deleted) {
+            return response(['message' => 'Product can not deleted it because one order from it.'], 404);
         }
         $product->delete();
         return response()->json(status: 200);

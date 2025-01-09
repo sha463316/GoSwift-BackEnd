@@ -29,22 +29,24 @@ class CartController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        $cart = session()->get('cart');
+        $id = auth()->user()->id;
+        $cart = session()->get("cart{$id}");
         $cart[$product->id] = ([
             'id' => $product->id,
             'quantity' => $request->input('quantity'),
             'price' => $product->price * $request->input('quantity'),
             'product' => $product,
         ]);
-        session()->put('cart', $cart);
-        return session()->get('cart');
+        session()->put("cart{$id}", $cart);
+        return session()->get("cart{$id}");
     }
 
 
     public function showCart()
     {
 
-        $cart = session()->get('cart');
+        $id = auth()->user()->id;
+        $cart = session()->get("cart{$id}");
         return response()->json(['Cart' => $cart]);
     }
 
@@ -60,7 +62,8 @@ class CartController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        $cart = session()->get('cart');
+        $id = auth()->user()->id;
+        $cart = session()->get("cart{$id}");
         if (!$cart[$product->id]) {
             return response()->json(['message' => 'Product not found'], 404);
         }
@@ -70,16 +73,18 @@ class CartController extends Controller
 
     public function clearCart(Request $request, $productId)
     {
-        session()->forget('cart');
+        $id = auth()->user()->id;
+        session()->forget("cart{$id}");
         return response()->json(['message' => 'Cart removed']);
 
     }
 
     public function deleteFromCart($productId)
     {
-        $cart = session()->get('cart');
+        $id = auth()->user()->id;
+        $cart = session()->get("cart{$id}");
         unset($cart[$productId]);
-        session()->put('cart', $cart);
+        session()->put("cart{$id}", $cart);
         return response()->json(['message' => 'Product removed', 'Cart' => $cart]);
     }
 
@@ -89,12 +94,13 @@ class CartController extends Controller
             'payment_method' => ['required', Rule::in(['CashSyriatel', 'CashMTN', 'Cash', 'Card'])],
             'location' => 'required|string|max:255',
         ]);
-        $carts = session()->get('cart');
+        $id = auth()->user()->id;
+        $carts = session()->get("cart{$id}");
         if (!$carts) {
             return response()->json(['message' => 'Cart is empty'], 404);
         }
         $order = Order::create([
-            'user_id' => auth()->id(),
+            'user_id' => $id,
             'payment_method' => $request->input('payment_method'),
             'location' => $request->input('location'),
             'total_price' => 0
@@ -114,8 +120,8 @@ class CartController extends Controller
         $order->update([
             'total_price' => $totalPrice
         ]);
-        session()->forget('cart');
-        return response()->json(['message' => 'Order created','Cart' => $carts]);
+        session()->forget("cart{$id}");
+        return response()->json(['message' => 'Order created', 'Cart' => $carts]);
     }
 
 
