@@ -97,7 +97,7 @@ class OrderController extends Controller
     public
     function showOrders()
     {
-        $orders = Order::where('user_id', auth()->id())->get();;
+        $orders = Order::where('user_id', auth()->id())->with('orderProducts')->get();
         return response()->json(['orders' => $orders], 200);
     }
 
