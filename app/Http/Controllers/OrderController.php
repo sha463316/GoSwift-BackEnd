@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendNotificationToUsers;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\Product;
 use App\Rules\CheckOrder;
 use App\Rules\StockAvailable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
@@ -160,7 +163,10 @@ class OrderController extends Controller
             ]);
         }
         $order->update(['status' => 'Accepted']);
-
+        Notification::create([
+            'user_id' => $order->user_id,
+            'message' => 'one order has been accepted: ',
+        ]);
         return response()->json(['order' => $order], 201);
     }
 
@@ -171,13 +177,18 @@ class OrderController extends Controller
             'reason' => ['required', 'string'],
         ]);
         $order = Order::find($order_id);
-        if ($order->status != 'Pending') {
-            return response()->json(['message' => 'The order is not pending'], 404);
-        }
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
         }
+        if ($order->status != 'Pending') {
+            return response()->json(['message' => 'The order is not pending'], 404);
+        }
+
         $order->update(['status' => 'Declined']);
+        Notification::create([
+            'user_id' => $order->user_id,
+            'message' => 'one order has been declined: ' . $request->input('reason') ,
+        ]);
         return response()->json(['reason' => $request->input('reason')], 201);
     }
 

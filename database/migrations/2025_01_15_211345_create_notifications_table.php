@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,12 +11,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('order_products', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(\App\Models\Order::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(\App\Models\Product::class)->constrained()->cascadeOnDelete();
-            $table->integer('quantity');
-            $table->double('price');
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->string('message');
+            $table->boolean('read')->default(false);
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('order_products');
+        Schema::dropIfExists('notifications');
     }
 };

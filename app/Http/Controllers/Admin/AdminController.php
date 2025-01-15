@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendNotificationToUsers;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
@@ -37,6 +40,12 @@ class AdminController extends Controller
         $user->update([
             'role' => 'admin'
         ]);
+
+        Notification::create([
+            'user_id' => $user['id'],
+            'message' => 'Hello , you became an admin!'
+        ]);
+
         return response([
             'message' => 'User with phone number ' . $user->phone_number . ' is now admin'
         ], 200);
@@ -58,6 +67,10 @@ class AdminController extends Controller
             'description' => $request->input('description'),
             'image' => $this->uploadImage($request, 'stores')
         ]);
+
+        SendNotificationToUsers::dispatch('A new store has been added: ' . $store->name);
+        Artisan::call('queue:work', ['--once' => true]);
+
         return response()->json($store, 200, ['OK']);
     }
 
@@ -102,7 +115,7 @@ class AdminController extends Controller
             }
         }
         if (!$deleted) {
-            return response(['message' => 'store can not deleted it because one order from it.'], 404);
+            return response(['message' => 'you can not deleted this store because one order from it.'], 404);
         }
         $store->products()->delete();
         $store->delete();
@@ -131,6 +144,10 @@ class AdminController extends Controller
             'store_id' => $store_id,
             'image' => $this->uploadImage($request, 'products')
         ]);
+
+        SendNotificationToUsers::dispatch('A new product has been added: ' . $product->name);
+        Artisan::call('queue:work', ['--once' => true]);
+
         return response()->json($product, 200, ['OK']);
     }
 
@@ -178,7 +195,7 @@ class AdminController extends Controller
             }
         }
         if (!$deleted) {
-            return response(['message' => 'Product can not deleted it because one order from it.'], 404);
+            return response(['message' => 'you can not deleted this product because one order from it.'], 404);
         }
         $product->delete();
         return response()->json(status: 200);

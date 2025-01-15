@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
@@ -65,6 +66,10 @@ Route::group(['middleware' => ['auth:sanctum', 'api_session']], function () {
     Route::get('liked-products/{id}', [LikeController::class, 'getLikedProduct']);
     Route::get('all-like', [LikeController::class, 'allLikedProducts']);
 
+    Route::get('notifications', [NotificationController::class, 'showNotifications']);
+    Route::get('notifications/{id}', [NotificationController::class, 'showNotification']);
+    Route::get('notification/number', [NotificationController::class, 'numberOfNotifications']);
+
 });
 
 // Admin Routes
@@ -83,5 +88,7 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('accepted/{order_id}', [OrderController::class, 'accepted']);
     Route::post('declined/{order_id}', [OrderController::class, 'declined']);
     Route::get('ordersPending', [OrderController::class, 'showOrdersPending']);
+    Route::post('create-notification', [NotificationController::class, 'createNotification']);
+
 
 });
